@@ -1,4 +1,35 @@
+import { useState } from "react";
+
+function createCaptcha() {
+  const firstNumber = Math.floor(Math.random() * 8) + 2;
+  const secondNumber = Math.floor(Math.random() * 8) + 2;
+
+  return {
+    question: `${firstNumber} + ${secondNumber}`,
+    answer: firstNumber + secondNumber,
+  };
+}
+
 function Contact() {
+  const [captcha, setCaptcha] = useState(createCaptcha);
+  const [captchaError, setCaptchaError] = useState("");
+
+  function handleSubmit(event) {
+    const formData = new FormData(event.currentTarget);
+
+    if (formData.get("website")) {
+      event.preventDefault();
+      return;
+    }
+
+    if (Number(formData.get("captcha")) !== captcha.answer) {
+      event.preventDefault();
+      setCaptchaError("Jawaban captcha belum benar.");
+      setCaptcha(createCaptcha());
+      event.currentTarget.elements.captcha.value = "";
+    }
+  }
+
   return (
     <section
       id="contact"
@@ -19,11 +50,17 @@ function Contact() {
         <form
           action="https://formsubmit.co/roxiyt082@gmail.com"
           method="POST"
+          onSubmit={handleSubmit}
           className="grid grid-cols-1 gap-4 text-left"
         >
           <input type="hidden" name="_subject" value="Pesan Baru dari Portfolio" />
           <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_template" value="table" />
+
+          <div className="hidden" aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input id="website" name="website" tabIndex="-1" autoComplete="off" />
+          </div>
 
           <div>
             <label className="mb-1 block text-sm text-slate-400">
@@ -65,6 +102,32 @@ function Contact() {
               required
               className="w-full rounded-lg border border-slate-800 bg-[#111827] px-4 py-3 text-white transition-colors focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
             ></textarea>
+          </div>
+
+          <div>
+            <label
+              htmlFor="captcha"
+              className="mb-1 block text-sm text-slate-400"
+            >
+              Verifikasi: berapa hasil dari {captcha.question}?
+            </label>
+
+            <input
+              id="captcha"
+              type="number"
+              name="captcha"
+              inputMode="numeric"
+              required
+              placeholder="Masukkan jawaban"
+              aria-describedby={captchaError ? "captcha-error" : undefined}
+              className="w-full rounded-lg border border-slate-800 bg-[#111827] px-4 py-3 text-white transition-colors focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+            />
+
+            {captchaError && (
+              <p id="captcha-error" className="mt-2 text-sm text-red-400">
+                {captchaError}
+              </p>
+            )}
           </div>
 
           <button
